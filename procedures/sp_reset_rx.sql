@@ -1,0 +1,8 @@
+USE Apobase;
+GO
+CREATE PROCEDURE sp_reset_rx
+@ID NVARCHAR(MAX)
+AS
+DELETE RW_EREZEPT_Abrechnung WHERE ERezeptID = @ID;
+DELETE RW_EREZEPT_RZErgebnis WHERE ERezeptID = @ID;
+UPDATE RW_APOBASE_REZEPT SET cKontrollStatus = 0, cFehlerTyp = 0 WHERE ERezeptID = @ID;
