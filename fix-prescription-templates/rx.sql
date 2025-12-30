@@ -14,3 +14,12 @@ DECLARE @ERezeptID NVARCHAR(MAX) = '0000000000';																																
 -- /* SPLIT  */         SET @Hämo = '000000';																																																														EXEC sp_reset_rx @ID = @ERezeptID; UPDATE RW_APOBASE_Rezept set iRpNr = 0, ERezeptID = null OUTPUT inserted.iRpNr, inserted.ERezeptID, inserted.strText WHERE didate = @D AND iRpNr = @R AND diLfdNr NOT IN (@Hämo) AND @R IN (SELECT iRpNr FROM RW_APOBASE_Rezept WHERE diLfdNr = @Hämo) AND @D IN (SELECT didate FROM RW_APOBASE_Rezept WHERE diLfdNr = @Hämo);
    /* QUERY  */																																																																						SELECT dilfdnr,iRpNr as RpNr,iAnzahl as Anzahl,diPzn as PZN, diKdIkNummer as IkNr, strKundenName AS kunde,strText,bstorno,diVk AS VK,diFbtrg as Fest, diZahlbetrag as ZB, iAnteil as Anteil, diZuzahlung as ZZZ,Markt as M,Rabattvertragerfuellung as R,PreisguenstigesFAM as P,ImportFAM as I, Begruendung FROM RW_APOBASE_Rezept WHERE ERezeptID = @ERezeptID; SELECT ERezeptID as ID,diDate, ditime, cKontrollStatus as KS,cFehlerTyp as FT,Verordnung,Abrechnung,Dispense,Quittung FROM ERezeptView WHERE ERezeptID = @ERezeptID;  SELECT diLfdNr,iVgNr as VgNr,iRpNr as RpNr,iAnzahl as Anzahl,diPzn,strText, didate, ditime, diVk AS VK,diFbtrg as Fest, diZahlbetrag as ZB, iAnteil as Anteil, diZuzahlung as ZZZ  FROM RW_APOBASE_Vorgaenge WHERE didate = @D and iRpNr = @R;  SELECT ERezeptID,Status,TRIM(Kommentar) AS msg, Trim(Kurztext) AS synopsis  FROM RW_EREZEPT_RZErgebnis WHERE ERezeptID = @ERezeptID; SELECT * FROM RW_MODUL_SEC_Securpharm WHERE SecurPharmID = @S; select generikum, Apo_Vk, Festbetrag from apo_abda_pac_apo where PZN = @P;select * from RW_EREZEPT_Aenderungen where ERezeptID = @ERezeptID;
 
+
+-- Abgabedatensatz überschreiben
+RETURN
+DECLARE @Blob NVARCHAR(MAX) = '';
+
+DELETE RW_EREZEPT_RZErgebnis WHERE ERezeptID = @ERezeptID;
+UPDATE RW_EREZEPT_Abrechnung SET Blob = @Blob WHERE ERezeptID = @ERezeptID;
+UPDATE RW_APOBASE_Rezept SET cKontrollStatus = 0, cFehlerTyp = 0 WHERE ERezeptID = @ERezeptID;
+RETURN;
