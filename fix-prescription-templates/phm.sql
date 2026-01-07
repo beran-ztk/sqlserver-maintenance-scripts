@@ -3,7 +3,7 @@ DECLARE @id varchar(50);
 DECLARE @Verordnung varchar(MAX);
 
 DECLARE id_cursor CURSOR FOR
-SELECT ERezeptID, CAST(Verordnung AS varchar(MAX)) FROM ERezeptView WHERE ERezeptID LIKE '990.%' AND diDate > 20251100 AND CAST(Verordnung as varchar(max)) LIKE 'MIA%' AND cKontrollStatus IN (0,4)
+SELECT ERezeptID, CAST(Verordnung AS varchar(MAX)) FROM ERezeptView WHERE ERezeptID LIKE '980.%' AND diDate > 20251100 AND CAST(Verordnung as varchar(max)) LIKE 'MIA%' AND cKontrollStatus IN (0,4)
 OPEN id_cursor;  
   
 FETCH NEXT FROM id_cursor INTO @id, @Verordnung;  
