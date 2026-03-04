@@ -192,14 +192,31 @@ foreach ($item in $items) {
     }
 
     ########################
-    # Verordnung auspacken
+    # Verordnung
     try {
+        # Verordnung auspacken
         $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($item.Verordnung))
+        $bundle = [regex]::Match($decoded, '(?s)<Bundle.*?</Bundle>')
+
+        # Cast Verordnung zu XML
+        $vDoc = New-Object System.Xml.XmlDocument
+        $vDoc.PreserveWhitespace = $true
+        $vDoc.LoadXml($bundle)
+
+        $nsmgr = New-Object System.Xml.XmlNamespaceManager($vDoc.NameTable)
+        $nsmgr.AddNamespace("f", "http://hl7.org/fhir")
     }
     catch {
         continue
     }
-    $bundle = [regex]::Match($decoded, '(?s)<Bundle.*?</Bundle>')
+    
+    # Prüfe die Länge des Pflegekassennamens
+    $systemAttr = $vdoc.SelectSingleNode("(//f:entry/f:resource/f:Coverage/f:payor/f:display/@value)[1]", $nsmgr)
+
+    if ($systemAttr.Value.Length -gt 45) {
+        $systemAttr.Value = $systemAttr.Value.Substring(0,45)
+    }
+    $verordnung = $vDoc.OuterXml
 
     ########################
     # Update ausführen
@@ -207,7 +224,7 @@ foreach ($item in $items) {
 
     $sql = ""
     $sql += "UPDATE RW_APOBASE_Rezept SET cKontrollStatus = 0, cFehlerTyp = 0 WHERE ERezeptID = '$id';"
-    $sql += "UPDATE RW_EREZEPT_Verordnung SET Blob = '$bundle' WHERE ERezeptID = '$id';"
+    $sql += "UPDATE RW_EREZEPT_Verordnung SET Blob = '$verordnung' WHERE ERezeptID = '$id';"
     $sql += "DELETE RW_EREZEPT_Quittung WHERE ERezeptID = '$id';"
 
     if ($changed) {
