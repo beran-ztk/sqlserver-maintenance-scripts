@@ -1,16 +1,3 @@
---Fehlenden Vorgang erstellen
-/*
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'AutomatischeZuweisung')
-	DROP PROCEDURE AutomatischeZuweisung
-GO
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'sp_Create_Missing_Process')
-	DROP PROCEDURE sp_Create_Missing_Process
-GO
-CREATE PROCEDURE sp_Create_Missing_Process
-AS
-BEGIN
-*/
-
 DECLARE @CurrentValue NVARCHAR(25);
 DECLARE @CurrentDate NVARCHAR(10) = dbo.date();
 
@@ -89,6 +76,3 @@ IF OBJECT_ID('tempdb..#Zuweisung') IS NOT NULL
 	DROP TABLE #Zuweisung;
 IF OBJECT_ID('tempdb..#RezeptRowsCount') IS NOT NULL 
 	DROP TABLE #RezeptRowsCount;
-
---END
-
