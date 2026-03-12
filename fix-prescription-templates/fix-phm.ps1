@@ -216,7 +216,19 @@ foreach ($item in $items) {
     if ($systemAttr.Value.Length -gt 45) {
         $systemAttr.Value = $systemAttr.Value.Substring(0,45)
     }
-    $verordnung = $vDoc.OuterXml
+
+    # Fehlende Dispense Request Zeile ergänzen
+    $quantity = $vdoc.SelectSingleNode("(//f:entry/f:resource/f:MedicationRequest/f:dispenseRequest/f:quantity)[1]", $nsmgr)
+    $packung = $vdoc.SelectSingleNode("(//f:entry/f:resource/f:MedicationRequest/f:dispenseRequest/f:quantity/f:unit)[1]", $nsmgr)
+
+    if ($null -eq $packung -and $null -ne $quantity) {
+        $unitNode = $vdoc.CreateElement("unit", $quantity.NamespaceURI)
+        $attr = $vdoc.CreateAttribute("value")
+        $attr.Value = "Packung"
+        $unitNode.Attributes.Append($attr) | Out-Null
+        
+        $quantity.AppendChild($unitNode) | Out-Null
+    }
 
     ########################
     # Update ausführen
@@ -224,7 +236,7 @@ foreach ($item in $items) {
 
     $sql = ""
     $sql += "UPDATE RW_APOBASE_Rezept SET cKontrollStatus = 0, cFehlerTyp = 0 WHERE ERezeptID = '$id';"
-    $sql += "UPDATE RW_EREZEPT_Verordnung SET Blob = '$verordnung' WHERE ERezeptID = '$id';"
+    $sql += "UPDATE RW_EREZEPT_Verordnung SET Blob = '$($vDoc.OuterXml)' WHERE ERezeptID = '$id';"
     $sql += "DELETE RW_EREZEPT_Quittung WHERE ERezeptID = '$id';"
 
     if ($changed) {
